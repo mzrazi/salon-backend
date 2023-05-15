@@ -3,6 +3,7 @@ const  mongoose=require('mongoose')
 var jwt = require('jsonwebtoken');
 const bcrypt=require("bcrypt")
 const nodemailer = require('nodemailer');
+const gallery = require('../models/gallerymodel');
 
 
 
@@ -163,7 +164,61 @@ module.exports={
         console.log(error);
         return res.status(500).json({ status: 500, message: "Server error" });
         }
-        },              
+        },   
+        
+
+        homepagedata: async (req, res) => {
+            try {
+              const offers = await Offer.find({});
+              
+          
+              const categories = await Category.find({});
              
+          
+              const specialists = await Specialist.find({});
+              
+          
+              const contact = await Contact.find({});
+              res.status(200).json({
+                status: 200,
+                message: "success",
+                offers,
+                categories,
+                specialists,
+                contact,
+              });
+            } catch (error) {
+              console.error(error);
+              res.status(500).json({ message: "Error retrieving data" });
+            }
+          },
+
+
+            
+    userdetails:async (req,res)=>{
+        try {
+          var id = req.body.userId
+        
+       const user= await User.findById(id).exec()
+       if (!user) {
+        return res.status(404).json({status:404, message: "User not found" });
+      }
+      return res.status(200).json({status:200,message:"succesful", user });
+      } catch (error) {
+          return res.status(500).json({status:500, message: "Error retrieving user" });
+          
+        }
+      },
+    
+      getgallery:async(req,res)=>{
+        try {
+
+           const images=await gallery.find({}).exec()
+           return res.status(200).json({status:200,message:"succesful", images });
+            
+        } catch (error) {
+            return res.status(500).json({status:500, message: "Error retrieving gallery",error });
+        }
+      }
 
 }
