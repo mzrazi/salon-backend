@@ -8,6 +8,7 @@ var Offer=require('../models/offersmodel');
 const Contact = require('../models/contactmodel');
 const banner = require('../models/bannermodel');
 var Category=require('../models/categorymodel');
+const reviewpicmodel = require('../models/reviewpicmodel');
 
 
 
@@ -183,6 +184,7 @@ module.exports={
               
           
               const contact = await Contact.find({});
+              const reviewpic= await reviewpicmodel.find({})
 
               res.status(200).json({
                 status: 200,
@@ -190,6 +192,7 @@ module.exports={
                 categories,
                 offers,
                 banners,
+                reviewpic,
                 contact,
               });
             } catch (error) {

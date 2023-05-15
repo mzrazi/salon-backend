@@ -12,6 +12,7 @@ const Offer=require('../models/offersmodel');
 const gallery = require('../models/gallerymodel');
 const { addContact } = require('../controllers/admincontrol');
 const banner = require('../models/bannermodel');
+const reviewpic = require('../models/reviewpicmodel');
 
 
 
@@ -23,6 +24,15 @@ const storageGallery = multer.diskStorage({
     cb(null, `file-${Date.now()}-${Math.random()}${path.extname(file.originalname)}`);
   }
 });
+const storagereview= multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, './public/images/review');
+  },
+  filename: function(req, file, cb) {
+    cb(null, `file-${Date.now()}-${Math.random()}${path.extname(file.originalname)}`);
+  }
+});
+
 
 const storageImages = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -72,6 +82,7 @@ const uploadSpecialist = multer({ storage:storagespecialists });
 const uploadservices = multer({ storage:storageServices });
 const uploadGallery=multer({ storage: storageGallery});
 const uploadbanner=multer({ storage: storagebanner});
+const uploadreview=multer({ storage: storagereview});
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -148,7 +159,7 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
     })
      try { 
      await newspecialist.save() 
-      res.status(200).json({message:'done'})
+      res.status(200).json({message:'done',newspecialist})
     } catch (error) {
       fs.unlink(req.file.path, (err) => {
         if (err) console.log(err);
@@ -204,7 +215,7 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
     
       await newimage.save();
     
-      res.status(200).json({ message: "done" });
+      res.status(200).json({ message: "done" },newimage);
     } catch (error) {
       if (req.file) {
         fs.unlink(req.file.path, (err) => {
@@ -238,6 +249,27 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
         console.log(`${req.file.path} was deleted`);
       });
       res.status(500).json({ message: 'error' ,error});
+    }
+  });
+
+  router.post('/save-reviewimage', uploadreview.single('image'), async (req, res) => {
+    try {
+      console.log(req.file);
+      const newimage = new reviewpic({
+        imagePath: `/images/gallery/${req.file.filename}`
+      });
+    
+      await newimage.save();
+    
+      res.status(200).json({ message: "done" ,newimage});
+    } catch (error) {
+      if (req.file) {
+        fs.unlink(req.file.path, (err) => {
+          if (err) console.log(err);
+          console.log(`${req.file.path} was deleted`);
+        });
+      }
+      res.status(500).json({ message: "error", error });
     }
   });
 
