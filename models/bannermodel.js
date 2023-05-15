@@ -1,7 +1,7 @@
 const mongoose = require('mongoose'); // Erase if already required
 
 // Declare the Schema of the Mongo model
-var offerSchema = new mongoose.Schema({
+var bannerSchema = new mongoose.Schema({
     imagepath:{
         type:String,
         required:true,
@@ -12,11 +12,7 @@ var offerSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Service',
       }],
-
-    percentage:{
-        type:String
-    }
 });
 
 //Export the model
-module.exports = mongoose.model('Offer', offerSchema);
+module.exports = mongoose.model('Banner', bannerSchema);

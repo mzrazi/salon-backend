@@ -4,6 +4,10 @@ var jwt = require('jsonwebtoken');
 const bcrypt=require("bcrypt")
 const nodemailer = require('nodemailer');
 const gallery = require('../models/gallerymodel');
+var Offer=require('../models/offersmodel');
+const Contact = require('../models/contactmodel');
+const banner = require('../models/bannermodel');
+var Category=require('../models/categorymodel');
 
 
 
@@ -175,16 +179,17 @@ module.exports={
               const categories = await Category.find({});
              
           
-              const specialists = await Specialist.find({});
+              const banners = await banner.find({}).populate('services');
               
           
               const contact = await Contact.find({});
+
               res.status(200).json({
                 status: 200,
                 message: "success",
-                offers,
                 categories,
-                specialists,
+                offers,
+                banners,
                 contact,
               });
             } catch (error) {

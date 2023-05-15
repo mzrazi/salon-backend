@@ -10,6 +10,8 @@ const Service = require('../models/servicemodel');
 const specialist = require('../models/specialistmodel');
 const Offer=require('../models/offersmodel');
 const gallery = require('../models/gallerymodel');
+const { addContact } = require('../controllers/admincontrol');
+const banner = require('../models/bannermodel');
 
 
 
@@ -47,6 +49,14 @@ const storageOffers = multer.diskStorage({
     cb(null, `file-${Date.now()}-${Math.random()}${path.extname(file.originalname)}`);
   }
 });
+const storagebanner = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, './public/images/banners');
+  },
+  filename: function(req, file, cb) {
+    cb(null, `file-${Date.now()}-${Math.random()}${path.extname(file.originalname)}`);
+  }
+});
 const storagespecialists = multer.diskStorage({
   destination: function(req, file, cb) {
     cb(null, './public/images/specialists');
@@ -61,6 +71,7 @@ const uploadOffers = multer({ storage: storageOffers });
 const uploadSpecialist = multer({ storage:storagespecialists });
 const uploadservices = multer({ storage:storageServices });
 const uploadGallery=multer({ storage: storageGallery});
+const uploadbanner=multer({ storage: storagebanner});
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -204,6 +215,33 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
       res.status(500).json({ message: "error", error });
     }
   });
+
+  router.post('/add-banner', uploadbanner.single('image'), async (req, res) => {
+
+    console.log(req.body);
+   
+    
+    try {
+      var newbanner = new banner({
+        imagepath: `/images/offers/${req.file.filename}`,
+        services: req.body.services , 
+      }); 
+  
+      const savedbanner = await newbanner.save();
+  
+      
+      res.status(200).json({ message: 'done',savedbanner });
+    } catch (error) {
+      console.log(error);
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.log(err);
+        console.log(`${req.file.path} was deleted`);
+      });
+      res.status(500).json({ message: 'error' ,error});
+    }
+  });
+
+  router.post('/add-contact',addContact)
   
 
 module.exports = router;
