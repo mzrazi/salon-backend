@@ -1,5 +1,5 @@
 var express = require('express');
-const { userlogin, userSignup, verifyEmail, userdetails, getgallery, homepagedata } = require('../controllers/usercontrols');
+const { userlogin, userSignup, verifyEmail, userdetails, getgallery, homepagedata, savemessage } = require('../controllers/usercontrols');
 var router = express.Router();
 const multer=require('multer');
 const User = require('../models/user');
@@ -29,6 +29,7 @@ router.post('/login', userlogin);
 router.post('/signup', userSignup)
 router.get('/verify-email/:token', verifyEmail)
 router.post("/user-details", userdetails)
+router.post('/message',savemessage)
 router.put('/edit-profile', uploadProfilepic.single('image'), async (req, res) => {
   try {
     // Find user by id

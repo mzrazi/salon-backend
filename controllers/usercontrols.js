@@ -9,6 +9,7 @@ const Contact = require('../models/contactmodel');
 const banner = require('../models/bannermodel');
 var Category=require('../models/categorymodel');
 const reviewpicmodel = require('../models/reviewpicmodel');
+const Message = require('../models/messagemodel');
 
 
 
@@ -227,6 +228,32 @@ module.exports={
         } catch (error) {
             return res.status(500).json({status:500, message: "Error retrieving gallery",error });
         }
+      },
+      savemessage:async(req,res)=>{
+
+        var {title,email,message}=req.body
+    
+        
+    
+        var newmessage=new Message({
+          title:title,
+          useremail:email,
+          message:message,
+        })
+        try {
+          
+          newmessage.save().then((doc)=>{
+            res.status(200).json({status:200,message:"succesfull",newmessage})
+          }).catch((err)=>{
+            res.status(404).json({status:404,message:err.message})
+          })
+        } catch (error) {
+    
+          res.status(500).json({status:500,message:"internal error",err:error})
+        }
+    
+    
+    
       }
 
 }
