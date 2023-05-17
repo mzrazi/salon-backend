@@ -306,7 +306,9 @@ module.exports={
               const currentPrice = service.price - (service.price * discountPercentage / 100);
                 console.log(currentPrice);
               service.currentPrice = currentPrice;
-            }
+            } else {
+                service.currentPrice = service.price;
+              }
           });
       
           res.status(200).json(category);
