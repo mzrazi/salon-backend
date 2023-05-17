@@ -10,6 +10,12 @@ const serviceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  currentPrice:
+   {
+     type: Number,
+     default:null
+
+   },
   duration: {
     type: String,
     required: true,
@@ -28,7 +34,7 @@ const serviceSchema = new mongoose.Schema({
     ref: 'Offer',
     default:null
    },
-    imagepath:{
+imagepath:{
     type:String,
     required:true,
     unique:true,

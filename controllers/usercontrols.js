@@ -277,11 +277,11 @@ module.exports={
         }
       },
 
-     findCategoryWithServices:async(req, res)=> {
+    findCategoryWithServices : async (req, res) => {
         const categoryId = req.body.categoryId;
       
         try {
-            const category = await Category.findById(categoryId)
+          const category = await Category.findById(categoryId)
             .populate({
               path: 'services',
               populate: {
@@ -290,16 +290,32 @@ module.exports={
               },
             })
             .exec();
+      
           if (!category) {
             return res.status(404).json({ error: 'Category not found' });
           }
-          
+      
           // Category found with populated services
+          const services = category.services;
+      
+          services.forEach(service => {
+            const offer = service.offer;
+      
+            if (offer) {
+              const discountPercentage = offer.percentage;
+              const currentPrice = service.price - (service.price * discountPercentage / 100);
+                console.log(currentPrice);
+              service.currentPrice = currentPrice;
+            }
+          });
+      
           res.status(200).json(category);
         } catch (error) {
           console.error(error);
           res.status(500).json({ error: 'Internal server error' });
         }
       }
-
+      
+          
+      
 }
