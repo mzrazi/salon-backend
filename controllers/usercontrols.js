@@ -254,6 +254,52 @@ module.exports={
     
     
     
+      },
+
+      getAllNotifications:async(req,res)=>{
+  
+        const { userId } = req.body;
+      
+        try {
+          const Notifications= await notificationmodel
+            .find({ $or: [{ user: userId }, { user: 'all' }] })
+            .sort({ createdAt: -1 })
+            .exec();
+      
+          if (Notifications.length === 0) {
+            return res.status(404).json({ success: false, message: 'notifications not found for user' });
+          }
+      
+          return res.status(200).json({ success: true, data: Notifications});
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ success: false, message: 'Error fetching notifications' });
+        }
+      },
+
+     findCategoryWithServices:async(req, res)=> {
+        const categoryId = req.body.categoryId;
+      
+        try {
+            const category = await Category.findById(categoryId)
+            .populate({
+              path: 'services',
+              populate: {
+                path: 'offer',
+                model: 'Offer',
+              },
+            })
+            .exec();
+          if (!category) {
+            return res.status(404).json({ error: 'Category not found' });
+          }
+          
+          // Category found with populated services
+          res.status(200).json(category);
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ error: 'Internal server error' });
+        }
       }
 
 }

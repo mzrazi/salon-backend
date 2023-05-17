@@ -10,7 +10,7 @@ const Service = require('../models/servicemodel');
 const specialist = require('../models/specialistmodel');
 const Offer=require('../models/offersmodel');
 const gallery = require('../models/gallerymodel');
-const { addContact } = require('../controllers/admincontrol');
+const { addContact, sendnotification } = require('../controllers/admincontrol');
 const banner = require('../models/bannermodel');
 const reviewpic = require('../models/reviewpicmodel');
 
@@ -234,7 +234,7 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
     
     try {
       var newbanner = new banner({
-        imagepath: `/images/offers/${req.file.filename}`,
+        imagepath: `/images/banners/${req.file.filename}`,
         services: req.body.services , 
       }); 
   
@@ -256,7 +256,7 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
     try {
       console.log(req.file);
       const newimage = new reviewpic({
-        imagePath: `/images/gallery/${req.file.filename}`
+        imagePath: `/images/review/${req.file.filename}`
       });
     
       await newimage.save();
@@ -274,6 +274,7 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
   });
 
   router.post('/add-contact',addContact)
+  router.post('/send-notification',sendnotification)
   
 
 module.exports = router;
