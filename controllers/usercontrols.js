@@ -12,6 +12,8 @@ const reviewpicmodel = require('../models/reviewpicmodel');
 const Message = require('../models/messagemodel');
 const Service = require('../models/servicemodel');
 const { calculateCurrentPrice } = require('./helpers');
+const Appointment = require('../models/appointmentmodel');
+const Cancelledappointment = require('../models/cancelledappointmentmodel');
 
 
 
@@ -305,7 +307,7 @@ module.exports={
             const offer = service.offer;
       
             if (offer) {
-              const discountPercentage = offer.percentage;
+              const discountPercentage = offer.discountPercentage;
               const currentPrice = service.price - (service.price * discountPercentage / 100);
                 console.log(currentPrice);
               service.currentPrice = currentPrice;
@@ -368,7 +370,175 @@ module.exports={
         }
       },
 
+      findOfferAndPopulateServices: async (req, res) => {
+        const offerId = req.body.offerId;
+      
+        try {
+          // Find the offer document
+          const offer = await Offer.findById(offerId)
+          .populate({
+            path: 'services',
+            model: 'Service',
+            populate: {
+              path: 'offer',
+              model: 'Offer',
+            },
+          })
+          .exec();
+        
+      
+          if (!offer) {
+            return res.status(404).json({ error: 'Offer not found' });
+          }
+      
+        
+          offer.services.forEach(service =>service.currentPrice =  calculateCurrentPrice(service));
+      
+        
+          
+          res.status(200).json({message:'succces',offer});
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ error: 'Internal server error' });
+        }
+      },
+      bookingpage: async (req, res) => {
+        try {
+         
+          const timestamp = req.body.date; // Unix timestamp in seconds
+          const dateObj = new Date(timestamp * 1000);
+          const appointmentsByDate = [];
+      
+          // Create start and end of day
+          const startOfDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+          const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+      
+          // Find all appointments for the day
+          const appointments = await Appointment.find({
+            date: {
+              $gte: startOfDay,
+              $lt: endOfDay
+            }
+          }).exec();
+      
+          // Group appointments by timeslot
+          const appointmentsByTimeSlot = {};
+          appointments.forEach((appointment) => {
+            if (!appointmentsByTimeSlot[appointment.timeslot]) {
+              appointmentsByTimeSlot[appointment.timeslot] = [];
+            }
+            appointmentsByTimeSlot[appointment.timeslot].push(appointment);
+          });
+      
+          // Create timeSlots array
+          const timeSlots = ['9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm'];
+      
+          // Remove time slots that have appointments booked
+          Object.entries(appointmentsByTimeSlot).forEach(([timeslot, appointments]) => {
+            const index = timeSlots.indexOf(timeslot);
+            if (index !== -1) {
+              timeSlots.splice(index, 1);
+            }
+          });
+      
+   
+          appointmentsByDate.push({ date: timestamp, timeSlots: timeSlots });
+      
+          return res.status(200).json({ message: 'success', appointmentsByDate });
+        } catch (error) {
+          res.status(500).json({ message: 'error', error: error.message });
+        }
+      },
+      
+      
+      addAppointment : async (req, res) => {
+        try {
+          const timestamp = req.body.date; // Unix timestamp in seconds
+  const date = new Date(timestamp * 1000); // convert to milliseconds
+  // output: Wed May 05 2021 15:45:01 GMT-0400 (Eastern Daylight Time)
+  
+  
+          // create a new appointment object
+          const newAppointment = new Appointment({
+            date:date,
+            timeslot: req.body.timeslot,
+            services: req.body.serviceId, // assuming you have an array of serviceIds in the form data
+            userId: req.body.userId,
+            totalAmount: req.body.totalAmount,
+            totalDuration: req.body.totalDuration,
+          });
+      
+          // save the appointment to the database
+          const savedAppointment = await newAppointment.save();
+      
+          // populate the service data for the saved appointment
+          await savedAppointment.populate('services')
+      
+          res.status(200).json({ message: 'Appointment added successfully', appointment: savedAppointment });
+        } catch (error) {
+          console.log(error);
+          res.status(500).json({ message: 'Error adding appointment', error });
+        }
+      },
+
+
+      userCancelAppointment:async(req,res)=> {
+        try {
+  
+          const {appointmentId,reason}=req.body
+          const appointment = await Appointment.findById(appointmentId)
+          if (!appointment) {
+           return  res.status(404).json({message:'Appointment not found'});
+          }
+          const cancelledAppointment = new Cancelledappointment({
+            date: appointment.date,
+            timeslot: appointment.timeslot,
+            services: appointment.services,
+            userId: appointment.userId,
+            totalAmount: appointment.totalAmount,
+            totalDuration: appointment.totalDuration,
+            reason:reason,
+            cancelledby:'user'
+          });
+          const cancelled =await cancelledAppointment.save();
+          if(!cancelled){
+            return res.status(500).json({status:500 ,message:'cancellation error'})
+          }
+          const deleted=await Appointment.findByIdAndDelete(appointmentId);
+  
+          if(!deleted){
+            cancelledAppointment.deleteOne()
+  
+            return res.status(500).json({status:500 ,message:'cancellation error'})
+  
+          }
+  
+          // const specialist=await Specialist.findById(appointment.specialistId)
+          // const tokens=specialist.tokens
+          // const response = await admin.messaging().sendMulticast({
+          //   tokens,
+          //   notification: {
+          //     title:' cancelled ',
+          //     body: 'appointment cancelled by user because of' +reason
+          //   }
+          // });
+          // console.log('FCM response:', response);
+  
+  
+          
+          return res.status(200).json({message:'success',cancelledAppointment})
+        } catch (err) {
+          return res.status(500).json({message:'error',err})
+          
+         
+        }
+      }
+    }
+    
+    
+      
+      
       
           
       
-}
+

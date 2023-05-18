@@ -41,8 +41,8 @@ sendnotification:async(req,res)=>{
         const { title, message, selectedUsers } = req.body;
   
         const body =message
-        console.log(req.body);
-      
+
+  
         try {
           // If "Select All" is checked, retrieve all email-verified users' tokens
           let tokens = [];
@@ -50,19 +50,21 @@ sendnotification:async(req,res)=>{
             const users = await User.find({ emailverified: true });
             tokens = users.flatMap((user) => user.tokens);
             console.log(tokens);
-          } else { // Find the specific user and retrieve their token
+          } else if (selectedUsers) { // Find the specific user and retrieve their token
             const user = await User.findOne({ _id: selectedUsers });
             if (!user) {
             return res.status(400).json({message:'User not found'});
             }
             tokens = user.tokens;
+          } else {
+            return res.status(400).json({message:'Please select a user'});
           }
       
           if (tokens.length === 0) {
             return res.status(400).json({message:'no valid tokens found'});
           }
       
-        
+        console.log(tokens);
           const response = await admin.messaging().sendMulticast({
             tokens,
             notification: {
@@ -127,6 +129,7 @@ sendnotification:async(req,res)=>{
             });
           }
         }
-      },
+      }
+    
+      }
 
-}

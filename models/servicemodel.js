@@ -7,7 +7,7 @@ const serviceSchema = new mongoose.Schema({
     index: true,
   },
   price: {
-    type: String,
+    type: Number,
     required: true,
   },
   currentPrice:

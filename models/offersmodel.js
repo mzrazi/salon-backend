@@ -13,7 +13,7 @@ var offerSchema = new mongoose.Schema({
         ref: 'Service',
       }],
 
-    percentage:{
+    discountPercentage:{
         type:String
     }
 });

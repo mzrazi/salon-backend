@@ -98,7 +98,7 @@ router.post('/add-offers', uploadOffers.single('image'), async (req, res) => {
     var newoffer = new Offer({
       imagepath: `/images/offers/${req.file.filename}`,
       services: req.body.services , // Assuming the selected service IDs are sent in the request body as an array in the 'services' field
-      percentage:req.body.percentage
+      percentage:req.body.discountPercentage
     }); 
 
     const savedOffer = await newoffer.save();
@@ -170,41 +170,44 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
     
     }) 
 
-  router.post('/add-service',uploadservices.single('image'),async(req,res)=>{
-    try {
-      const categoryId = req.body.categoryId;
-  
-      // Check if the category exists
-      const category = await Category.findById(categoryId);
-      if (!category) {
-        return res.status(404).json({ message: 'Category not found' });
+    router.post('/add-service', uploadservices.array('images', 5), async (req, res) => {
+      try {
+        const categoryId = req.body.categoryId;
+    
+        // Check if the category exists
+        const category = await Category.findById(categoryId);
+        if (!category) {
+          return res.status(404).json({ message: 'Category not found' });
+        }
+    
+        // Create an array to store the image paths
+        const imagePaths = req.files.map((file) => `/images/services/${file.filename}`);
+       
+        // Create a new service object
+        const newService = new Service({
+          title: req.body.title,
+          price: req.body.price,
+          duration: req.body.duration,
+          description: req.body.description,
+          imagepath: imagePaths,
+          category: categoryId,
+        });
+    
+        // Save the service to the database
+        const savedService = await newService.save();
+    
+        // Add the service ID to the services array of the category
+        await Category.findByIdAndUpdate(categoryId, {
+          $push: { services: savedService._id },
+        });
+    
+        res.status(200).json({ message: 'Service added successfully', service: savedService });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error adding service' });
       }
-  
-      // Create a new service object
-      const newService = new Service({
-        title: req.body.title,
-        price: req.body.price,
-        duration: req.body.duration,
-        description: req.body.description,
-        imagepath:`/images/services/${req.file.filename}`,
-        category: categoryId
-      });
-  
-      // Save the service to the database
-      const savedService = await newService.save();
-  
-      // Add the service ID to the services array of the category
-      await Category.findByIdAndUpdate(categoryId, {
-        $push: { services: savedService._id }
-      });
-  
-      res.status(200).json({ message: 'Service added successfully', service: savedService });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error adding service' });
-    }
-  
-  })
+    });
+    
 
   router.post('/save-image', uploadGallery.single('image'), async (req, res) => {
     try {
