@@ -1,5 +1,5 @@
 var express = require('express');
-const { userlogin, userSignup, verifyEmail, userdetails, getgallery, homepagedata, savemessage, findCategoryWithServices } = require('../controllers/usercontrols');
+const { userlogin, userSignup, verifyEmail, userdetails, getgallery, homepagedata, savemessage, findCategoryWithServices, findServiceByIdAndGetRecommendedServices } = require('../controllers/usercontrols');
 var router = express.Router();
 const multer=require('multer');
 const User = require('../models/user');
@@ -67,6 +67,8 @@ router.put('/edit-profile', uploadProfilepic.single('image'), async (req, res) =
 router.get('/gallery',getgallery)
 router.get('/home',homepagedata)
 router.post('/services-page',findCategoryWithServices)
+router.post('/send-notification',)
+router.post('/service-details',findServiceByIdAndGetRecommendedServices)
 
 
 

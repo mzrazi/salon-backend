@@ -1,6 +1,14 @@
 const Contact = require('../models/contactmodel');
 const  mongoose=require('mongoose');
 const notification = require('../models/notificationmodel');
+const User = require('../models/user');
+const admin = require('firebase-admin');
+
+
+
+
+const serviceAccount = require(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+admin.initializeApp({credential: admin.credential.cert(serviceAccount)});
 module.exports={
 
 

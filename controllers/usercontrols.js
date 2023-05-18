@@ -10,6 +10,8 @@ const banner = require('../models/bannermodel');
 var Category=require('../models/categorymodel');
 const reviewpicmodel = require('../models/reviewpicmodel');
 const Message = require('../models/messagemodel');
+const Service = require('../models/servicemodel');
+const { calculateCurrentPrice } = require('./helpers');
 
 
 
@@ -277,6 +279,7 @@ module.exports={
         }
       },
 
+
     findCategoryWithServices : async (req, res) => {
         const categoryId = req.body.categoryId;
       
@@ -316,7 +319,55 @@ module.exports={
           console.error(error);
           res.status(500).json({ error: 'Internal server error' });
         }
-      }
+      },
+  findServiceByIdAndGetRecommendedServices : async (req, res) => {
+        const serviceId = req.body.serviceId;
+      
+        try {
+          const service = await Service.findById(serviceId)
+          .populate({
+            path: 'category',
+            model: 'Category',
+            populate: {
+              path: 'services',
+              model: 'Service',
+              populate: {
+                path: 'offer',
+                model: 'Offer',
+              },
+            },
+          })
+          .populate({
+            path: 'offer',
+            model: 'Offer',
+          })
+          .exec();
+        
+
+          console.log(service);
+      
+          if (!service) {
+            return res.status(404).json({ error: 'Service not found' });
+          }
+      
+          // Service found with populated category
+          const recommendedServices = service.category.services.filter(s => s._id !== service._id);
+          const selectedservice=await Service.findById(serviceId).populate('offer')
+      
+          // Calculate the current price for the service and the recommended services
+          selectedservice.currentPrice = calculateCurrentPrice(service);
+          recommendedServices.forEach(s => s.currentPrice = calculateCurrentPrice(s));
+      
+          res.status(200).json({
+            selectedservice,
+            recommendedServices,
+          });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ error: 'Internal server error' });
+        }
+      },
+
       
           
       
