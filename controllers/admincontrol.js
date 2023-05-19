@@ -3,6 +3,8 @@ const  mongoose=require('mongoose');
 const notification = require('../models/notificationmodel');
 const User = require('../models/user');
 const admin = require('firebase-admin');
+const Appointment = require('../models/appointmentmodel');
+const Completedappointment = require('../models/completedappointmentmodel');
 
 
 
@@ -129,6 +131,47 @@ sendnotification:async(req,res)=>{
             });
           }
         }
+      },
+      completedjob:async(req,res)=>{
+        try {
+  
+          const {appointmentId}=req.body
+          const appointment = await Appointment.findById(appointmentId)
+          if (!appointment) {
+          return res.status(404).json({message:'Appointment not found'});
+          }
+          const completedAppointment = new Completedappointment({
+            date: appointment.date,
+            timeslot: appointment.timeslot,
+            services: appointment.services,
+            userId: appointment.userId,
+            totalAmount: appointment.totalAmount,
+            totalDuration: appointment.totalDuration,
+            paid:appointment.paid
+          });
+          await completedAppointment.save();
+          await Appointment.findByIdAndDelete(appointmentId);
+  
+          const user=await User.findById(appointment.userId)
+          // const tokens=user.tokens
+          // const response = await admin.messaging().sendMulticast({
+          //   tokens,
+          //   notification: {
+          //     title:' completed ',
+          //     body: 'job completed'
+          //   }
+          // });
+          // console.log('FCM response:', response);
+  
+  
+          
+          return res.status(200).json({message:'success', completedAppointment})
+        } catch (err) {
+          res.status(500).json({message:'error',err})
+          console.error(err);
+         
+        }
+  
       }
     
       }

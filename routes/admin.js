@@ -10,7 +10,7 @@ const Service = require('../models/servicemodel');
 const specialist = require('../models/specialistmodel');
 const Offer=require('../models/offersmodel');
 const gallery = require('../models/gallerymodel');
-const { addContact, sendnotification } = require('../controllers/admincontrol');
+const { addContact, sendnotification, completedjob } = require('../controllers/admincontrol');
 const banner = require('../models/bannermodel');
 const reviewpic = require('../models/reviewpicmodel');
 
@@ -278,6 +278,7 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
 
   router.post('/add-contact',addContact)
   router.post('/send-notification',sendnotification)
+  router.post('/complete-job',completedjob)
   
 
 module.exports = router;
