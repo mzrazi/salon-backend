@@ -2,6 +2,10 @@ const mongoose = require('mongoose'); // Erase if already required
 
 // Declare the Schema of the Mongo model
 var bannerSchema = new mongoose.Schema({
+    title:{
+        type:String,
+        required:true
+    },
     imagepath:{
         type:String,
         required:true,

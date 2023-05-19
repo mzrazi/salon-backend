@@ -14,6 +14,7 @@ const Service = require('../models/servicemodel');
 const { calculateCurrentPrice } = require('./helpers');
 const Appointment = require('../models/appointmentmodel');
 const Cancelledappointment = require('../models/cancelledappointmentmodel');
+const Cart = require('../models/cartmodel');
 
 
 
@@ -532,7 +533,90 @@ module.exports={
           
          
         }
-      }
+      },
+
+addToCart : async (req, res) => {
+        const { userId, serviceId } = req.body;
+      
+        try {
+          const cart = await Cart.findOne({ user: userId });
+          if (!cart) {
+            // If cart doesn't exist, create a new one
+            const newCart = new Cart({
+              user: userId,
+              services: [serviceId],
+            });
+            await newCart.save();
+           return res.status(200).json({ message: 'Service added to cart' ,newCart});
+          } else {
+            // If cart exists, add the service to the existing cart
+            cart.services.push(serviceId);
+            await cart.save();
+            return res.status(200).json({ message: 'Service added to cart' ,cart});
+          }
+      
+         
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ error: 'Error adding service to cart' });
+        }
+      },
+
+      
+ removeFromCart:async (req, res) => {
+  const { userId, serviceId } = req.body;
+
+  try {
+    const cart = await Cart.findOne({ user: userId });
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    const serviceIndex = cart.services.indexOf(serviceId);
+    if (serviceIndex === -1) {
+      return res.status(404).json({ message: 'Service not found in cart' });
+    }
+
+    cart.services.splice(serviceIndex, 1);
+    await cart.save();
+
+    res.status(200).json({ message: 'Service removed from cart' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error removing service from cart' });
+  }
+},
+
+
+ getCartByUserId: async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const cart = await Cart.findOne({ user: userId })
+      .populate({
+        path: 'services',
+        populate: {
+          path: 'offer',
+        },
+      })
+      .exec();
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    // Calculate the actual price for each service in the cart
+   Cart.services = cart.services.map((service) => {
+      service.currentPrice = calculateCurrentPrice(service);
+      return service;
+    });
+
+    res.status(200).json({ cart});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error retrieving cart' });
+  }
+}
     }
     
     
