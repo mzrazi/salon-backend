@@ -178,7 +178,7 @@ module.exports={
         },   
         
 
-        homepagedata: async (req, res) => {
+  homepagedata: async (req, res) => {
             try {
               const offers = await Offer.find({});
               
@@ -186,9 +186,24 @@ module.exports={
               const categories = await Category.find({});
              
           
-              const banners = await banner.find({}).populate('services');
+              const banners = await banner.find().populate({
+                path: 'services',
+                populate: {
+                  path: 'offer',
+                },
+              })
+              .exec();
+              console.log(banners);
               
-          
+              banners.forEach((banner) => {
+                banner.services.forEach((service) => {
+                  service.currentPrice = calculateCurrentPrice(service);
+                });
+              });
+              
+                
+             
+              
               const contact = await Contact.find({});
               const reviewpic= await reviewpicmodel.find({})
 
@@ -616,7 +631,10 @@ addToCart : async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Error retrieving cart' });
   }
-}
+},
+
+
+
     }
     
     
