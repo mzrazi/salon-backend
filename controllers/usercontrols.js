@@ -649,22 +649,24 @@ getupcomingappointments:async(req,res)=>{
     .populate('services')
     .populate('specialistId')
     .exec()
-    
-    upcomingAppointments.services = upcomingAppointments.services.map((service) => {
-      service.currentPrice = calculateCurrentPrice(service);
-      return service;
-    });
-    
-   
+    console.log(upcomingAppointments);
+
+  
     
     
     if (upcomingAppointments.length === 0) {
       return res.status(404).json({ message: 'No upcoming appointments found' });
     }
+     
+    upcomingAppointments.services = upcomingAppointments.services.map((service) => {
+      service.currentPrice = calculateCurrentPrice(service);
+      return service;
+    })
     
     return res.status(200).json({ message: 'success', appointments:upcomingAppointments });
   } catch (error) {
-    return res.status(500).json({ message: 'Error finding appointments', error: error.message });
+    console.log(error);
+    return res.status(500).json({ message: 'Error finding appointments', error });
   }},
 
  completedappointments:async (req,res)=>{
@@ -679,14 +681,16 @@ getupcomingappointments:async(req,res)=>{
       .exec()
       console.log('completed'+appointments);
 
-      appointments.services = appointments.services.map((service) => {
-        service.currentPrice = calculateCurrentPrice(service);
-        return service;
-      });
+      
 
       if(!appointments){
        return res.status(404).json({message:'not found'})
       }
+
+      appointments.services = appointments.services.map((service) => {
+        service.currentPrice = calculateCurrentPrice(service);
+        return service;
+      });
 
 
      return res.status(200).json({message:'success',appointments})
