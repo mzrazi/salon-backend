@@ -658,12 +658,16 @@ getupcomingappointments:async(req,res)=>{
       return res.status(404).json({ message: 'No upcoming appointments found' });
     }
      
-    upcomingAppointments.services = upcomingAppointments.services.map((service) => {
-      service.currentPrice = calculateCurrentPrice(service);
-      return service;
-    })
-    
-    return res.status(200).json({ message: 'success', appointments:upcomingAppointments });
+    const updatedAppointments = upcomingAppointments.map((appointment) => {
+      const updatedServices = appointment.services.map((service) => {
+        service.currentPrice = calculateCurrentPrice(service);
+        return service;
+      });
+
+      appointment.services = updatedServices;
+      return appointment;
+    });
+    return res.status(200).json({ message: 'success', appointments:updatedAppointments });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: 'Error finding appointments', error });
@@ -687,13 +691,17 @@ getupcomingappointments:async(req,res)=>{
        return res.status(404).json({message:'not found'})
       }
 
-      appointments.services = appointments.services.map((service) => {
-        service.currentPrice = calculateCurrentPrice(service);
-        return service;
+      const updatedAppointments = appointments.map((appointment) => {
+        const updatedServices = appointment.services.map((service) => {
+          service.currentPrice = calculateCurrentPrice(service);
+          return service;
+        });
+  
+        appointment.services = updatedServices;
+        return appointment;
       });
+      return res.status(200).json({ message: 'success', appointments:updatedAppointments });
 
-
-     return res.status(200).json({message:'success',appointments})
     } catch (error) {
       console.log(error);
      return  res.status(500).json({message:'error',error})
