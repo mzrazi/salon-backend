@@ -17,6 +17,9 @@ const Cancelledappointment = require('../models/cancelledappointmentmodel');
 const Cart = require('../models/cartmodel');
 const Completedappointment = require('../models/completedappointmentmodel');
 
+const Specialist = require('../models/specialistmodel');
+const Review = require('../models/reviewmodel');
+
 
 
 module.exports={
@@ -754,7 +757,48 @@ searchServices :async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Error searching services' });
   }
-}
+},
+
+
+addreview:async(req,res)=>{
+  const { appointmentId, review, reliability, tidiness, response, accuracy, pricing, rating, complete,recommendation} = req.body;
+  try {
+
+    const appointment=await  Completedappointment.findById(appointmentId)
+    if(!appointment){
+      return res.status(404).json({message:"not found"})
+    }
+    console.log(appointment);
+
+    if(!appointment.userId || !appointment.specialistId) {
+      return res.status(400).json({ message: "Missing userId or specialistId in appointment" });
+    }
+
+    const existingReview = await Review.findOne({ appointmentId });
+    if(existingReview) {
+      return res.status(400).json({ message: "A review has already been submitted for this appointment" });
+    }
+
+    const {userId,specialistId}=appointment
+    const newReview = new Review({userId,specialistId, appointmentId, review, reliability, tidiness, response, accuracy, pricing, rating, complete,recommendation});
+    const savedReview = await newReview.save();
+    const specialist=await Specialist.findById(specialistId)
+    const reviewId = savedReview._id
+    specialist.reviews.push(reviewId)
+    await specialist.save();
+    await Completedappointment.findByIdAndUpdate(
+      appointmentId,
+      { reviewed: true },
+      { new: true }
+    );
+
+
+    res.status(201).json({message:'done',savedReview});
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+
+},
 
 
 
