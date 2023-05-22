@@ -1,17 +1,14 @@
-const servicemodel = require("../models/servicemodel");
-
 module.exports={
-    calculateCurrentPrice:async(service)=> {
-       const selectedservice=await servicemodel.findById(service._id).populate('offer').exec()
-       const offer =selectedservice.offer
+    calculateCurrentPrice:(service)=> {
+        const offer = service.offer;
       
         if (offer) {
           const discountPercentage = offer.discountPercentage;
-           const result=selectedservice.price - (selectedservice.price * discountPercentage / 100);
+           const result=service.price - (service.price * discountPercentage / 100);
            console.log(result);
            return result
         } else {
-          return selectedservice;
+          return service.price;
         }
       }
 }
