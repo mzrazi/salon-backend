@@ -32,7 +32,7 @@ const serviceSchema = new mongoose.Schema({
   offer:{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Offer',
-    default:null
+   
    },
 imagepath:[{
     type:String,

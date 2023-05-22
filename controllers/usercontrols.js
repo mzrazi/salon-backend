@@ -512,6 +512,7 @@ module.exports={
             timeslot: appointment.timeslot,
             services: appointment.services,
             userId: appointment.userId,
+            specialistId:appointment.specialistId,
             totalAmount: appointment.totalAmount,
             totalDuration: appointment.totalDuration,
             reason:reason,
@@ -608,7 +609,7 @@ addToCart : async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const cart = await Cart.findOne({ user: userId })
+    var cart = await Cart.findOne({ user: userId })
       .populate({
         path: 'services',
         populate: {
@@ -622,7 +623,7 @@ addToCart : async (req, res) => {
     }
 
     // Calculate the actual price for each service in the cart
-   Cart.services = cart.services.map((service) => {
+   cart.services = cart.services.map((service) => {
       service.currentPrice = calculateCurrentPrice(service);
       return service;
     });
@@ -639,13 +640,20 @@ getupcomingappointments:async(req,res)=>{
 
     const {userId}=req.body
   
-    const upcomingAppointments = await Appointment.find({
+    var upcomingAppointments = await Appointment.find({
       userId: userId,
       status: 'booked'
       
     })
     .populate('userId')
     .populate('services')
+    .populate('specialistId')
+    .exec()
+    
+    upcomingAppointments.services = upcomingAppointments.services.map((service) => {
+      service.currentPrice = calculateCurrentPrice(service);
+      return service;
+    });
     
    
     
@@ -664,15 +672,17 @@ getupcomingappointments:async(req,res)=>{
 
       const{userId}=req.body
 
-      
-      
-
-
-      const appointments=await  Completedappointment.find({userId}) 
+      var appointments=await  Completedappointment.find({userId}) 
       .populate('userId')
       .populate('services')
+      .populate('specialistId')
       .exec()
       console.log('completed'+appointments);
+
+      appointments.services = appointments.services.map((service) => {
+        service.currentPrice = calculateCurrentPrice(service);
+        return service;
+      });
 
       if(!appointments){
        return res.status(404).json({message:'not found'})
@@ -684,7 +694,58 @@ getupcomingappointments:async(req,res)=>{
       console.log(error);
      return  res.status(500).json({message:'error',error})
     }
+  },
+
+  assignSpecialist :async (req, res) => {
+    const appointmentId = req.body.appointmentId;
+    const specialistId = req.body.specialistId;
+  
+    try {
+      // Check if the appointment exists
+      const appointment = await Appointment.findById(appointmentId);
+      if (!appointment) {
+        return res.status(404).json({ message: 'Appointment not found' });
+      }
+  
+      // Assign the specialist to the appointment
+      appointment.specialistId = specialistId;
+      await appointment.save();
+  
+      res.status(200).json({ message: 'Specialist assigned successfully', appointment });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Error assigning specialist to appointment' });
+    }
+  },
+
+
+  
+
+searchServices :async (req, res) => {
+  const keyword = req.body.keyword
+
+  try {
+    // Find services that match the keyword or have similar attributes
+    var services = await Service.find({
+      
+         title: { $regex: keyword, $options: 'i' }  // Case-insensitive title match
+        }).populate('offer')
+
+       services = services.map((service) => {
+          service.currentPrice = calculateCurrentPrice(service);
+          return service;
+        });
+    
+
+    res.status(200).json({message:"success", services });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error searching services' });
   }
+}
+
+
+
 
 
     }

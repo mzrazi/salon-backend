@@ -90,38 +90,42 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/add-offers', uploadOffers.single('image'), async (req, res) => {
-
-  console.log(req.body);
- 
-  
   try {
-    var newoffer = new Offer({
+    if (!req.file) {
+      throw new Error('No image file provided');
+    }
+
+    const newOffer = new Offer({
       imagepath: `/images/offers/${req.file.filename}`,
-      services: req.body.services , // Assuming the selected service IDs are sent in the request body as an array in the 'services' field
-      percentage:req.body.discountPercentage
-    }); 
+      services: req.body.services,
+      discountPercentage: req.body.discountPercentage
+    });
 
-    const savedOffer = await newoffer.save();
+    const savedOffer = await newOffer.save();
 
-    // Update the service documents with the offer ID
     const offerId = savedOffer._id;
     const serviceIds = req.body.services;
 
     await Service.updateMany(
       { _id: { $in: serviceIds } },
-      { offer: offerId  }
+      { offer: offerId }
     );
 
-    res.status(200).json({ message: 'done' });
+    res.status(200).json({ message: 'Offer added successfully' });
   } catch (error) {
-    console.log(error);
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.log(err);
-      console.log(`${req.file.path} was deleted`);
-    });
-    res.status(500).json({ message: 'error' ,error});
+    console.error(error);
+
+    if (req.file) {
+      fs.unlink(req.file.path, (err) => {
+        if (err) console.error(err);
+        console.log(`${req.file.path} was deleted`);
+      });
+    }
+
+    res.status(500).json({ message: 'Error adding offer', error: error.message });
   }
 });
+
 
 
 router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
@@ -151,8 +155,8 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
    
     var newspecialist= new specialist({
       name:data.name,
-      categories:data.categoryId,
-      whatsapp:data.whatsappNumber,
+      // categories:data.categoryId,
+      whatsapp:data.whatsapp,
       email:data.email,
       password:data.password,
       imagepath:`/images/specialists/${req.file.filename}`

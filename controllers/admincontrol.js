@@ -145,6 +145,7 @@ sendnotification:async(req,res)=>{
             timeslot: appointment.timeslot,
             services: appointment.services,
             userId: appointment.userId,
+            specialistId:appointment.specialistId,
             totalAmount: appointment.totalAmount,
             totalDuration: appointment.totalDuration,
             paid:appointment.paid

@@ -19,6 +19,10 @@ const cancelledAppointmentSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  specialistId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Specialist',
+  },
   totalAmount: {
     type: Number,
     required: true,
