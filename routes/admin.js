@@ -243,6 +243,7 @@ router.post('/add-category',uploadCategories.single('image'),async(req,res)=>{
       var newbanner = new banner({
         imagepath: `/images/banners/${req.file.filename}`,
         services: req.body.services , 
+        title:req.body.title
       }); 
   
       const savedbanner = await newbanner.save();
