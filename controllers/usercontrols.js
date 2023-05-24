@@ -493,6 +493,12 @@ module.exports={
       
           // populate the service data for the saved appointment
           await savedAppointment.populate('services')
+          
+          await Cart.findOneAndUpdate(
+            { userId: req.body.userId },
+            { $set: { services: [] } }
+          );
+      
       
           res.status(200).json({ message: 'Appointment added successfully', appointment: savedAppointment });
         } catch (error) {
