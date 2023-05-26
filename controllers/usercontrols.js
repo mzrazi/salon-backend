@@ -806,6 +806,69 @@ addreview:async(req,res)=>{
 
 },
 
+rescheduleappointment: async (req, res) => {
+  try {
+    const { appointmentId, date, timeslot } = req.body;
+    const timestamp = date; // Unix timestamp in seconds
+    const newDate = new Date(timestamp * 1000);
+
+    const appointment = await Appointment.findOneAndUpdate(
+      { _id: appointmentId },
+      {
+        $set: {
+          date: newDate,
+          timeslot: timeslot,
+        },
+      },
+      { new: true }
+    );
+
+    if (!appointment) {
+      return res.status(404).json({ message: "Appointment not found" });
+    }
+
+    res.status(200).json({ appointment });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+},
+
+appointmentDetails:async(req,res)=>{
+  try {
+
+    const {id,status}=req.body
+
+    if(status=="completed"){  
+      
+    const details=await Completedappointment.findById(id).populate('services').populate('userId').exec()
+    if(!details){
+      return res.status(404).json({status:404,message:"appointment not found"})
+
+    }
+    console.log(details);
+    return res.status(200).json({status:200,message:'success',details})
+  }else{
+
+  const details=await Appointment.findById(id).populate('services').populate('userId').exec()
+  console.log(details);
+  if(!details){
+   return res.status(404).json({status:404,message:"appointment not found"})
+  }
+  return res.status(200).json({status:200,message:'success',details})
+
+}
+   
+    
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({status:500,message:"server error",error})
+    
+  }
+
+
+}
+
 
 
 

@@ -1,5 +1,5 @@
 var express = require('express');
-const { userlogin, userSignup, verifyEmail, userdetails, getgallery, homepagedata, savemessage, findCategoryWithServices, findServiceByIdAndGetRecommendedServices, findOfferAndPopulateServices, bookingpage, addAppointment, userCancelAppointment, addToCart, removeFromCart, getCartByUserId, getupcomingappointments, completedappointments, assignSpecialist, searchServices, addreview } = require('../controllers/usercontrols');
+const { userlogin, userSignup, verifyEmail, userdetails, getgallery, homepagedata, savemessage, findCategoryWithServices, findServiceByIdAndGetRecommendedServices, findOfferAndPopulateServices, bookingpage, addAppointment, userCancelAppointment, addToCart, removeFromCart, getCartByUserId, getupcomingappointments, completedappointments, assignSpecialist, searchServices, addreview, rescheduleappointment, appointmentDetails } = require('../controllers/usercontrols');
 var router = express.Router();
 const multer=require('multer');
 const User = require('../models/user');
@@ -80,6 +80,8 @@ router.post('/completed-appointments',completedappointments)
 router.post('/assign-specialist',assignSpecialist)
 router.post('/search',searchServices)
 router.post('/add-review',addreview)
+router.post('/reschedule',rescheduleappointment)
+router.post('/appointment-details',appointmentDetails)
 
 
 
