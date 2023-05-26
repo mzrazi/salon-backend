@@ -821,7 +821,7 @@ rescheduleappointment: async (req, res) => {
         },
       },
       { new: true }
-    );
+    ).populate('specialistId').exec()
 
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
